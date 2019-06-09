@@ -33,3 +33,4 @@ import './withPropsTable';
 import './withCustomTheme';
 import './withCustomCodeTheme';
 import './withOldApi';
+import './testMultiple';

@@ -15,25 +15,49 @@ import {
   MARKER_PROPS_TABLE,
 } from '../const';
 
+const isMultipleStories = story => {
+  if (
+    story &&
+    story.props &&
+    story.props.children &&
+    story.props.children.type &&
+    story.props.children.type.name === 'MultipleStories' // &&
+    // story.props.children.props.stories === 'is an array of react renderable~'
+  ) {
+    return true;
+  }
+  return false;
+};
+
 function split(md, story, config) {
+  const isMultiple = isMultipleStories(story);
+  let multipleStories = isMultiple ? story.props.children.props.stories : [];
   return (
     md
       /**
        * Should replace <!-- --> with custom placeholders to allow default md/html comments
        */
-      .replace(MARKER_STORY, `___{{${LAYOUT_TYPE_STORY}}}___`)
+      .replace(/<!-- STORY -->/gi, `___{{${LAYOUT_TYPE_STORY}}}___`)
       .replace(MARKER_PROPS_TABLE, `___{{${LAYOUT_TYPE_PROPS_TABLE}}}___`)
       .split(/___{{|}}___/)
       // .split(/<!--|-->/)
       .filter(p => p.trim().length !== 0)
       .map(part => {
         switch (part.trim()) {
-          case LAYOUT_TYPE_STORY:
+          case LAYOUT_TYPE_STORY: {
+            if (isMultiple) {
+              const firstElement = multipleStories.shift();
+              return {
+                type: LAYOUT_TYPE_STORY,
+                content: firstElement,
+              };
+            }
+
             return {
               type: LAYOUT_TYPE_STORY,
               content: story,
             };
-
+          }
           case LAYOUT_TYPE_PROPS_TABLE:
             return {
               type: LAYOUT_TYPE_PROPS_TABLE,
